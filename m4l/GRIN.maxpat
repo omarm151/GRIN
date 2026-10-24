@@ -117,19 +117,19 @@
    {
     "box": {
      "id": "dial",
-     "maxclass": "live.dial",
+     "maxclass": "live.numbox",
      "patching_rect": [
       20,
       20,
       44,
-      48
+      15
      ],
      "presentation": 1,
      "presentation_rect": [
-      10,
       14,
-      144,
-      144
+      18,
+      136,
+      136
      ],
      "numinlets": 1,
      "numoutlets": 2,
@@ -137,39 +137,25 @@
       "",
       "float"
      ],
-     "showname": 0,
-     "shownumber": 0,
-     "activedialcolor": [
+     "activebgcolor": [
       0.0,
       0.0,
       0.0,
       0.0
      ],
-     "activeneedlecolor": [
+     "activebgoncolor": [
       0.0,
       0.0,
       0.0,
       0.0
      ],
-     "dialcolor": [
+     "bgcolor": [
       0.0,
       0.0,
       0.0,
       0.0
      ],
-     "needlecolor": [
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ],
-     "textcolor": [
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ],
-     "panelcolor": [
+     "bordercolor": [
       0.0,
       0.0,
       0.0,
@@ -181,13 +167,43 @@
       0.0,
       0.0
      ],
+     "textcolor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "activeslidercolor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "slidercolor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
      "tricolor": [
       0.0,
       0.0,
       0.0,
       0.0
      ],
-     "trioncolor": [
+     "tricolor2": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "activetricolor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "activetricolor2": [
       0.0,
       0.0,
       0.0,

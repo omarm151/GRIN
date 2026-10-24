@@ -15,7 +15,7 @@ A native Max for Live audio effect: the same DSP as the AU/VST3 version, ported 
 
 | Control | What it does |
 |---------|--------------|
-| **Smile** (big knob) | The one knob. Drag up/down (hold Shift for fine control; click it and press Delete to reset). Automate it 0 → 100 % over the build, then snap it back to 0 for the drop |
+| **Smile** (big knob) | The one knob. Drag up/down (hold Shift for fine control; click it and press Delete to reset). The whole knob is the drag area. Automate it 0 → 100 % over the build, then snap it back to 0 for the drop |
 | **Strength** (tabs) | S1, S2 = Soft · M1, M2 = Medium · H1, H2 = Hard · EXT = Extreme |
 | **GATE** | Stutter gate locked to Live's transport (1/4 → 1/8 → 1/16 → 1/32) |
 | **NOISE** | White-noise riser that follows your track |

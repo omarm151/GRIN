@@ -349,12 +349,13 @@ DIM  = [0.54, 0.52, 0.6, 1.0]
 BG   = [0.051, 0.047, 0.071, 1.0]
 
 CLEAR = [0.0, 0.0, 0.0, 0.0]
-CLEAR_DIAL = {k: CLEAR for k in ("activedialcolor", "activeneedlecolor", "dialcolor", "needlecolor",
-                                 "textcolor", "panelcolor", "focusbordercolor", "tricolor", "trioncolor")}
 CLEAR_TAB  = {k: CLEAR for k in ("activebgcolor", "activebgoncolor", "bgcolor", "bgoncolor", "bordercolor",
                                  "focusbordercolor", "textcolor", "textoncolor", "activetextcolor",
                                  "activetextoncolor", "blinkcolor")}
 CLEAR_TEXT = CLEAR_TAB
+CLEAR_NUM  = {k: CLEAR for k in ("activebgcolor", "activebgoncolor", "bgcolor", "bordercolor", "focusbordercolor",
+                                 "textcolor", "activeslidercolor", "slidercolor", "tricolor", "tricolor2",
+                                 "activetricolor", "activetricolor2")}
 
 boxes = [
     # the whole visible interface (drawing only)
@@ -366,9 +367,11 @@ boxes = [
 
     # The real Live parameters, laid invisibly over the drawn controls so clicks,
     # drags and the right-click menu (Show Automation, Map to MIDI ...) go to Live.
-    box("dial", "live.dial", [20, 20, 44, 48], presentation=1, presentation_rect=[10, 14, 144, 144],
-        numinlets=1, numoutlets=2, outlettype=["", "float"], showname=0, shownumber=0,
-        **CLEAR_DIAL, **param("Smile", "Smile", 0, 100.0, 0.0, unitstyle=5)),
+    # live.numbox (not live.dial): it fills its whole box, so the entire drawn knob is the
+    # drag area; vertical drag + Shift for fine, exactly like a dial
+    box("dial", "live.numbox", [20, 20, 44, 15], presentation=1, presentation_rect=[14, 18, 136, 136],
+        numinlets=1, numoutlets=2, outlettype=["", "float"],
+        **CLEAR_NUM, **param("Smile", "Smile", 0, 100.0, 0.0, unitstyle=5)),
     box("tab", "live.tab", [140, 20, 230, 22], presentation=1, presentation_rect=[168, 40, 242, 19],
         numinlets=1, numoutlets=3, outlettype=["", "", "float"], num_lines_patching=1, num_lines_presentation=1,
         **CLEAR_TAB, **param("Strength", "Strength", 2, 6.0, 2.0, enum=["S1", "S2", "M1", "M2", "H1", "H2", "EXT"])),
