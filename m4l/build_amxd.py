@@ -291,6 +291,7 @@ oR = oR + clipMix * (tanh(oR) - oR);
 
 out1 = oL;
 out2 = oR;
+out3 = gGain;
 '''
 
 code = (FUNCS + DECLS + MAIN_TOP
@@ -331,13 +332,14 @@ gen_patcher = {
         newobj("g-in2", "in 2", [200, 20, 30, 22], 0, 1, [""]),
         newobj("g-in3", "in 3", [380, 20, 30, 22], 0, 1, [""]),
         box("g-code", "codebox", [20, 60, 800, 560], code=code, fontface=0, fontname="<Monospaced>",
-            fontsize=12.0, numinlets=3, numoutlets=2, outlettype=["", ""]),
+            fontsize=12.0, numinlets=3, numoutlets=3, outlettype=["", "", ""]),
         newobj("g-out1", "out 1", [20, 640, 37, 22], 1, 0, []),
         newobj("g-out2", "out 2", [400, 640, 37, 22], 1, 0, []),
+        newobj("g-out3", "out 3", [780, 640, 37, 22], 1, 0, []),
     ],
     "lines": [
         line("g-in1", 0, "g-code", 0), line("g-in2", 0, "g-code", 1), line("g-in3", 0, "g-code", 2),
-        line("g-code", 0, "g-out1", 0), line("g-code", 1, "g-out2", 0),
+        line("g-code", 0, "g-out1", 0), line("g-code", 1, "g-out2", 0), line("g-code", 2, "g-out3", 0),
     ],
 }
 
@@ -347,43 +349,28 @@ DIM  = [0.54, 0.52, 0.6, 1.0]
 BG   = [0.051, 0.047, 0.071, 1.0]
 
 boxes = [
-    # background + labels (presentation)
-    box("bg", "panel", [600, 20, 360, 169], presentation=1, presentation_rect=[0, 0, 360, 169],
-        bgcolor=BG, mode=0, border=0, background=1, numinlets=1, numoutlets=0, ignoreclick=1),
-    box("title", "comment", [600, 200, 80, 30], text="GRIN", presentation=1,
-        presentation_rect=[10, 4, 80, 30], fontname=FONT, fontsize=22.0, textcolor=[0.95, 0.94, 0.97, 1.0],
-        numinlets=1, numoutlets=0),
-    box("sub", "comment", [700, 200, 150, 18], text="ONE-KNOB BUILD-UP", presentation=1,
-        presentation_rect=[84, 14, 150, 18], fontname=FONT, fontsize=9.0, textcolor=DIM,
-        numinlets=1, numoutlets=0),
-    box("lblmode", "comment", [600, 240, 200, 18], text="STRENGTH", presentation=1,
-        presentation_rect=[128, 44, 120, 18], fontname=FONT, fontsize=9.0, textcolor=DIM,
-        numinlets=1, numoutlets=0),
-    box("legend", "comment", [600, 260, 230, 18], text="S = Soft   M = Medium   H = Hard   EXT = Extreme",
-        presentation=1, presentation_rect=[128, 88, 230, 18], fontname=FONT, fontsize=8.0, textcolor=DIM,
-        numinlets=1, numoutlets=0),
+    # the whole visible interface
+    box("ui", "jsui", [600, 20, 420, 169], filename="grin_ui.js", presentation=1,
+        presentation_rect=[0, 0, 420, 169], numinlets=1, numoutlets=1, outlettype=[""], border=0,
+        parameter_enable=0),
+    newobj("route", "route smile strength gateon noiseon", [600, 200, 220, 22], 1, 5, ["", "", "", "", ""]),
+    newobj("toDial", "* 100.", [600, 230, 50, 22], 2, 1, ["float"]),
 
-    # controls
-    box("dial", "live.dial", [20, 20, 90, 100], presentation=1, presentation_rect=[6, 40, 110, 122],
+    # hidden Live parameters (automation, MIDI mapping, presets)
+    box("dial", "live.dial", [20, 20, 44, 48],
         numinlets=1, numoutlets=2, outlettype=["", "float"],
-        showname=1, shownumber=1, fontname=FONT, fontsize=10.0,
-        activedialcolor=PINK, activeneedlecolor=CYAN, dialcolor=[0.14, 0.13, 0.18, 1.0],
-        textcolor=[0.95, 0.94, 0.97, 1.0],
         **param("Smile", "Smile", 0, 100.0, 0.0, unitstyle=5)),
-    box("tab", "live.tab", [140, 20, 230, 22], presentation=1, presentation_rect=[128, 62, 226, 22],
-        numinlets=1, numoutlets=3, outlettype=["", "", "float"], fontname=FONT, fontsize=9.0,
-        activebgoncolor=PINK, num_lines_patching=1, num_lines_presentation=1,
+    box("tab", "live.tab", [140, 20, 230, 22],
+        numinlets=1, numoutlets=3, outlettype=["", "", "float"], num_lines_patching=1,
         **param("Strength", "Strength", 2, 6.0, 2.0, enum=["S1", "S2", "M1", "M2", "H1", "H2", "EXT"])),
-    box("gatebtn", "live.text", [140, 60, 60, 20], presentation=1, presentation_rect=[128, 120, 70, 24],
+    box("gatebtn", "live.text", [140, 60, 60, 20],
         numinlets=1, numoutlets=2, outlettype=["", ""], text="GATE", texton="GATE",
-        activebgoncolor=PINK, fontname=FONT, fontsize=10.0,
         **param("Gate", "Gate", 2, 1.0, 1.0, enum=["off", "on"])),
-    box("noisebtn", "live.text", [220, 60, 60, 20], presentation=1, presentation_rect=[206, 120, 70, 24],
+    box("noisebtn", "live.text", [220, 60, 60, 20],
         numinlets=1, numoutlets=2, outlettype=["", ""], text="NOISE", texton="NOISE",
-        activebgoncolor=PINK, fontname=FONT, fontsize=10.0,
         **param("Noise", "Noise", 2, 1.0, 1.0, enum=["off", "on"])),
 
-    # parameter -> gen~ messages
+    # parameter -> gen~ and UI
     newobj("scale", "* 0.01", [20, 140, 50, 22], 2, 1, ["float"]),
     newobj("pSmile", "prepend smile", [20, 170, 85, 22], 1, 1, [""]),
     newobj("pStrength", "prepend strength", [140, 170, 100, 22], 1, 1, [""]),
@@ -393,9 +380,13 @@ boxes = [
     # audio
     newobj("plugin", "plugin~", [20, 230, 60, 22], 2, 2, ["signal", "signal"]),
     newobj("phasor", "phasor~ 1n @lock 1", [300, 230, 120, 22], 2, 1, ["signal"]),
-    box("gen", "newobj", [20, 280, 300, 22], text="gen~", numinlets=3, numoutlets=2,
-        outlettype=["signal", "signal"], patcher=gen_patcher),
+    box("gen", "newobj", [20, 280, 300, 22], text="gen~", numinlets=3, numoutlets=3,
+        outlettype=["signal", "signal", "signal"], patcher=gen_patcher),
     newobj("plugout", "plugout~", [20, 330, 60, 22], 2, 0, []),
+
+    # gate pulse -> UI
+    newobj("snap", "snapshot~ 30", [300, 330, 80, 22], 2, 1, ["float"]),
+    newobj("pPulse", "prepend gate", [300, 360, 80, 22], 1, 1, [""]),
 ]
 
 lines = [
@@ -405,6 +396,15 @@ lines = [
     line("noisebtn", 0, "pNoise", 0), line("pNoise", 0, "gen", 0),
     line("plugin", 0, "gen", 0), line("plugin", 1, "gen", 1), line("phasor", 0, "gen", 2),
     line("gen", 0, "plugout", 0), line("gen", 1, "plugout", 1),
+    # parameter state -> UI
+    line("pSmile", 0, "ui", 0), line("pStrength", 0, "ui", 0),
+    line("pGate", 0, "ui", 0), line("pNoise", 0, "ui", 0),
+    # UI gestures -> parameters
+    line("ui", 0, "route", 0),
+    line("route", 0, "toDial", 0), line("toDial", 0, "dial", 0),
+    line("route", 1, "tab", 0), line("route", 2, "gatebtn", 0), line("route", 3, "noisebtn", 0),
+    # gate pulse
+    line("gen", 2, "snap", 0), line("snap", 0, "pPulse", 0), line("pPulse", 0, "ui", 0),
 ]
 
 patcher = {"patcher": {
@@ -415,7 +415,7 @@ patcher = {"patcher": {
     "statusbarvisible": 2, "toolbarvisible": 1, "lefttoolbarpinned": 0, "toptoolbarpinned": 0,
     "righttoolbarpinned": 0, "bottomtoolbarpinned": 0, "toolbars_unpinned_last_save": 0,
     "tallnewobj": 0, "boxanimatetime": 200, "enablehscroll": 1, "enablevscroll": 1,
-    "devicewidth": 360.0, "description": "GRIN one-knob build-up", "digest": "", "tags": "",
+    "devicewidth": 420.0, "description": "GRIN one-knob build-up", "digest": "", "tags": "",
     "style": "", "subpatcher_template": "", "assistshowspatchername": 0,
     "boxes": boxes, "lines": lines,
     "parameters": {

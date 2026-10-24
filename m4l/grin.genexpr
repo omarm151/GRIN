@@ -289,3 +289,4 @@ oR = oR + clipMix * (tanh(oR) - oR);
 
 out1 = oL;
 out2 = oR;
+out3 = gGain;
