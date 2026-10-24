@@ -1,0 +1,47 @@
+name: Build macOS plugin
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-mac:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+
+      - name: Build
+        run: cmake --build build --config Release -j 4
+
+      - name: Package
+        run: |
+          mkdir -p dist/GRIN
+          cp -R build/GRIN_artefacts/Release/AU/GRIN.component dist/GRIN/
+          cp -R build/GRIN_artefacts/Release/VST3/GRIN.vst3 dist/GRIN/
+          cp -R build/GRIN_artefacts/Release/Standalone/GRIN.app dist/GRIN/
+          cp install_mac.command dist/GRIN/
+          chmod +x dist/GRIN/install_mac.command
+          # ad-hoc sign so Apple Silicon will load it
+          codesign --force --deep -s - dist/GRIN/GRIN.component dist/GRIN/GRIN.vst3 dist/GRIN/GRIN.app
+          cd dist && ditto -c -k --keepParent GRIN GRIN-mac.zip
+
+      - name: Upload build
+        uses: actions/upload-artifact@v4
+        with:
+          name: GRIN-mac
+          path: dist/GRIN-mac.zip
+
+      - name: Attach to release (tags only)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/GRIN-mac.zip
