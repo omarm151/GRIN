@@ -69,7 +69,8 @@
       ""
      ],
      "border": 0,
-     "parameter_enable": 0
+     "parameter_enable": 0,
+     "ignoreclick": 1
     }
    },
    {
@@ -122,11 +123,74 @@
       44,
       48
      ],
+     "presentation": 1,
+     "presentation_rect": [
+      10,
+      14,
+      144,
+      144
+     ],
      "numinlets": 1,
      "numoutlets": 2,
      "outlettype": [
       "",
       "float"
+     ],
+     "showname": 0,
+     "shownumber": 0,
+     "activedialcolor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "activeneedlecolor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "dialcolor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "needlecolor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "textcolor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "panelcolor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "focusbordercolor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "tricolor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "trioncolor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
      ],
      "saved_attribute_attributes": {
       "valueof": {
@@ -155,6 +219,13 @@
       230,
       22
      ],
+     "presentation": 1,
+     "presentation_rect": [
+      168,
+      40,
+      242,
+      19
+     ],
      "numinlets": 1,
      "numoutlets": 3,
      "outlettype": [
@@ -163,6 +234,73 @@
       "float"
      ],
      "num_lines_patching": 1,
+     "num_lines_presentation": 1,
+     "activebgcolor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "activebgoncolor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "bgcolor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "bgoncolor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "bordercolor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "focusbordercolor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "textcolor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "textoncolor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "activetextcolor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "activetextoncolor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "blinkcolor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
      "saved_attribute_attributes": {
       "valueof": {
        "parameter_longname": "Strength",
@@ -198,6 +336,13 @@
       60,
       20
      ],
+     "presentation": 1,
+     "presentation_rect": [
+      168,
+      134,
+      62,
+      24
+     ],
      "numinlets": 1,
      "numoutlets": 2,
      "outlettype": [
@@ -206,6 +351,72 @@
      ],
      "text": "GATE",
      "texton": "GATE",
+     "activebgcolor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "activebgoncolor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "bgcolor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "bgoncolor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "bordercolor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "focusbordercolor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "textcolor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "textoncolor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "activetextcolor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "activetextoncolor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "blinkcolor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
      "saved_attribute_attributes": {
       "valueof": {
        "parameter_longname": "Gate",
@@ -236,6 +447,13 @@
       60,
       20
      ],
+     "presentation": 1,
+     "presentation_rect": [
+      238,
+      134,
+      62,
+      24
+     ],
      "numinlets": 1,
      "numoutlets": 2,
      "outlettype": [
@@ -244,6 +462,72 @@
      ],
      "text": "NOISE",
      "texton": "NOISE",
+     "activebgcolor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "activebgoncolor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "bgcolor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "bgoncolor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "bordercolor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "focusbordercolor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "textcolor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "textoncolor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "activetextcolor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "activetextoncolor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "blinkcolor": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+     ],
      "saved_attribute_attributes": {
       "valueof": {
        "parameter_longname": "Noise",
