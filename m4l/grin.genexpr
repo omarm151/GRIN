@@ -1,0 +1,291 @@
+// ---------- helpers (each call site gets its own state) ----------
+g_sstep(e0, e1, x) {
+	t = clamp((x - e0) / (e1 - e0), 0, 1);
+	return t * t * (3 - 2 * t);
+}
+
+g_pick(m, a0, a1, a2, a3, a4, a5, a6) {
+	return m < 0.5 ? a0 : (m < 1.5 ? a1 : (m < 2.5 ? a2 : (m < 3.5 ? a3 : (m < 4.5 ? a4 : (m < 5.5 ? a5 : a6)))));
+}
+
+g_slew(x, c) {
+	History y(0);
+	History started(0);
+	v = started > 0.5 ? y + c * (x - y) : x;
+	started = 1;
+	y = v;
+	return v;
+}
+
+// TPT state-variable filter, highpass output
+g_hp(x, fc, q, sr) {
+	History ic1(0);
+	History ic2(0);
+	g = tan(3.14159265 * fc / sr);
+	k = 1 / q;
+	a1 = 1 / (1 + g * (g + k));
+	a2 = g * a1;
+	a3 = g * a2;
+	v3 = x - ic2;
+	v1 = a1 * ic1 + a2 * v3;
+	v2 = ic2 + a2 * ic1 + a3 * v3;
+	ic1 = 2 * v1 - ic1;
+	ic2 = 2 * v2 - ic2;
+	return x - k * v1 - v2;
+}
+
+// TPT state-variable filter, bandpass output
+g_bp(x, fc, q, sr) {
+	History ic1(0);
+	History ic2(0);
+	g = tan(3.14159265 * fc / sr);
+	k = 1 / q;
+	a1 = 1 / (1 + g * (g + k));
+	a2 = g * a1;
+	a3 = g * a2;
+	v3 = x - ic2;
+	v1 = a1 * ic1 + a2 * v3;
+	v2 = ic2 + a2 * ic1 + a3 * v3;
+	ic1 = 2 * v1 - ic1;
+	ic2 = 2 * v2 - ic2;
+	return v1;
+}
+
+g_flange(x, lfo, depthms, fb, amt, sr) {
+	Delay d(8192);
+	tap = d.read((0.6 + depthms * lfo) * 0.001 * sr);
+	d.write(x + fb * tap);
+	return x + amt * (0.5 * (x + tap) - x);
+}
+
+g_pshift(x, ph, win, amt) {
+	Delay d(16384);
+	p2 = ph + 0.5;
+	p2 = p2 - floor(p2);
+	w1 = sin(3.14159265 * ph);
+	w2 = sin(3.14159265 * p2);
+	y = d.read(1 + (1 - ph) * win) * w1 * w1 + d.read(1 + (1 - p2) * win) * w2 * w2;
+	d.write(x);
+	return x + amt * (y - x);
+}
+
+// tuned feedback comb with a lowpass in the loop (tonal riser)
+g_comb(x, dsamps, fb, damp) {
+	Delay d(8192);
+	History lp(0);
+	o = d.read(dsamps);
+	nlp = lp + damp * (o - lp);
+	lp = nlp;
+	d.write(x + fb * nlp);
+	return o;
+}
+
+// freeverb-style lowpass comb and allpass
+g_fvcomb(x, len, fb, damp) {
+	Delay d(8192);
+	History f(0);
+	o = d.read(len);
+	nf = o * (1 - damp) + f * damp;
+	f = nf;
+	d.write(x + nf * fb);
+	return o;
+}
+
+g_allp(x, len) {
+	Delay d(4096);
+	b = d.read(len);
+	d.write(x + b * 0.5);
+	return b - x;
+}
+
+g_saw(freq, sr) {
+	History ph(0);
+	dt = freq / sr;
+	p = ph + dt;
+	p = p - floor(p);
+	ph = p;
+	s = 2 * p - 1;
+	t = 0;
+	if (p < dt) {
+		t = p / dt;
+		s = s - (t + t - t * t - 1);
+	}
+	else if (p > 1 - dt) {
+		t = (p - 1) / dt;
+		s = s - (t * t + t + t + 1);
+	}
+	return s;
+}
+
+// ---------- GRIN main ----------
+// in1/in2 = audio, in3 = phasor~ 1n @lock 1 (one ramp per bar from Live's transport)
+Param smile(0, min=0, max=1);
+Param strength(2, min=0, max=6);
+Param gateon(1, min=0, max=1);
+Param noiseon(1, min=0, max=1);
+History sm(0);
+History env(0);
+History lfoph(0);
+History pph(0);
+History gateenv(1);
+
+sr = samplerate;
+
+// smoothed knob
+cs = 1 - exp(-1 / (0.02 * sr));
+s = sm + cs * (smile - sm);
+sm = s;
+
+// strength mode table, glided so switching never clicks
+m = floor(strength + 0.5);
+gl = 0.002;
+mDrive  = g_slew(g_pick(m, 0.30, 0.45, 0.65, 0.80, 0.95, 1.10, 1.40), gl);
+mTop    = g_slew(g_pick(m, 3000, 3600, 4500, 5500, 6500, 7500, 9000), gl);
+mRes    = g_slew(g_pick(m, 0.5, 0.6, 0.8, 1.0, 1.1, 1.2, 1.3), gl);
+mFlange = g_slew(g_pick(m, 0.35, 0.5, 0.7, 0.85, 1.0, 1.1, 1.2), gl);
+mNoise  = g_slew(g_pick(m, 0.55, 0.7, 0.85, 1.0, 1.05, 1.1, 1.2), gl);
+mGate   = g_slew(g_pick(m, 0, 0.5, 0.7, 0.85, 0.95, 1, 1), gl);
+mPitch  = g_slew(g_pick(m, 0, 0, 0.5, 0.8, 1, 1, 1.15), gl);
+mSpace  = g_slew(g_pick(m, 0.75, 0.85, 0.9, 1, 1, 1.05, 1.1), gl);
+mTone   = g_slew(g_pick(m, 0, 0, 0, 0, 0.6, 0.85, 1), gl);
+mSynth  = g_slew(g_pick(m, 0, 0, 0, 0, 0, 0, 1), gl);
+
+// knob -> stage curves (same as GrinEngine::updateCoefficients)
+driveMix  = clamp(s * 4, 0, 1);
+driveAmt  = 1 + 7 * mDrive * s * s;
+driveNorm = 1 / sqrt(driveAmt);
+
+hpMix = clamp(s * 8, 0, 1);
+hpCut = min(sr * 0.45, 20 * pow(mTop / 20, pow(s, 1.5)));
+hpQ2  = 1.3 + 1.4 * mRes * s * s;
+
+flMix   = min(0.8, 0.8 * mFlange * g_sstep(0.15, 0.75, s));
+flRate  = 0.12 + 2.8 * s * s;
+flDepth = 0.8 + 3.2 * s;
+flFb    = min(0.85, 0.75 * s * mFlange);
+
+nT     = g_sstep(0.1, 1, s);
+nLevel = noiseon > 0.5 ? 0.24 * mNoise * pow(nT, 1.5) : 0;
+nCut   = min(sr * 0.45, 300 * pow(40, s));
+nQ     = 1.1 + 1.5 * s;
+
+tT         = g_sstep(0.2, 1, s);
+toneLevel  = mTone * pow(tT, 1.2);
+synthLevel = mSynth * pow(g_sstep(0.35, 1, s), 1.5);
+toneFreq   = 130.81 * pow(2, 3 * tT);
+toneFb     = 0.92 + 0.06 * tT;
+toneNorm   = 3.2 * (1 - toneFb) / (1 - toneFb * 0.9);
+
+gDepth = 0;
+gDiv = 1;
+gfrac = 0;
+if (gateon > 0.5 && mGate > 0.01 && s >= 0.35) {
+	gfrac = (s - 0.35) / 0.65;
+	gDepth = clamp((s - 0.35) / 0.05, 0, 1) * (0.3 + 0.55 * gfrac) * mGate;
+	gDiv = s < 0.6 ? 1 : (s < 0.8 ? 0.5 : (s < 0.93 ? 0.25 : 0.125));
+}
+
+pT    = g_sstep(0.55, 1, s);
+pMix  = 0.35 * pT * mPitch;
+pWin  = 0.045 * sr;
+pStep = (pow(2, pT) - 1) / pWin;
+
+revWet = 0.22 * mSpace * pow(s, 1.3);
+dryG   = 1 - 0.3 * s;
+room   = min(0.98, 0.45 + 0.53 * s * mSpace);
+fvFb   = room * 0.28 + 0.7;
+fvDamp = (0.55 - 0.4 * s) * 0.4;
+
+side    = 1 + 0.7 * s;
+outG    = pow(10, 9 * pow(s, 1.5) / 20);
+clipMix = clamp(s * 5, 0, 1);
+
+// ---------- per-sample modulators ----------
+inL = in1;
+inR = in2;
+lvl = 0.5 * (abs(inL) + abs(inR));
+ec = lvl > env ? exp(-1 / (0.005 * sr)) : exp(-1 / (0.3 * sr));
+envNow = lvl + ec * (env - lvl);
+env = envNow;
+follow = min(1, envNow * 4);
+
+lp = lfoph + flRate / sr;
+lp = lp - floor(lp);
+lfoph = lp;
+lfoL = 0.5 + 0.5 * sin(6.2831853 * lp);
+lpR = lp + 0.25;
+lpR = lpR - floor(lpR);
+lfoR = 0.5 + 0.5 * sin(6.2831853 * lpR);
+
+pp = pph + pStep;
+pp = pp - floor(pp);
+pph = pp;
+
+gph = in3 * 4 / gDiv;
+gph = gph - floor(gph);
+gTarget = gDepth > 0 ? (gph < 0.55 ? 1 : 0) : 1;
+gc = exp(-1 / (0.0015 * sr));
+ge = gTarget + gc * (gateenv - gTarget);
+gateenv = ge;
+gGain = 1 - gDepth * (1 - ge);
+
+// synth saw riser (Extreme)
+sw1 = g_saw(toneFreq * 0.993, sr);
+sw2 = g_saw(toneFreq, sr);
+sw3 = g_saw(toneFreq * 1.007, sr);
+synL = (sw1 + sw2 + sw3 * 0.6) * 0.12 * synthLevel * follow;
+synR = (sw1 * 0.6 + sw2 + sw3) * 0.12 * synthLevel * follow;
+
+// ---------- channel L ----------
+xL = in1;
+xL = xL + driveMix * (tanh(xL * driveAmt) * driveNorm - xL);
+hL = g_hp(g_hp(xL, hpCut, 0.54, sr), hpCut, hpQ2, sr);
+xL = xL + hpMix * (hL - xL);
+xL = g_flange(xL, lfoL, flDepth, flFb, flMix, sr);
+xL = xL + g_bp(noise(), nCut, nQ, sr) * nLevel * follow;
+xL = g_pshift(xL, pp, pWin, pMix);
+exL = xL + 0.03 * noise() * follow;
+ringL = g_comb(exL, sr / (toneFreq * 1), toneFb, 0.55)
+       + g_comb(exL, sr / (toneFreq * 1.5 * 1), toneFb, 0.55) * 0.7
+       + g_comb(exL, sr / (toneFreq * 2 * 1), toneFb, 0.55) * 0.5;
+xL = xL + ringL * toneNorm * toneLevel * follow + synL;
+xL = xL * gGain;
+
+// ---------- channel R ----------
+xR = in2;
+xR = xR + driveMix * (tanh(xR * driveAmt) * driveNorm - xR);
+hR = g_hp(g_hp(xR, hpCut, 0.54, sr), hpCut, hpQ2, sr);
+xR = xR + hpMix * (hR - xR);
+xR = g_flange(xR, lfoR, flDepth, flFb, flMix, sr);
+xR = xR + g_bp(noise(), nCut, nQ, sr) * nLevel * follow;
+xR = g_pshift(xR, pp, pWin, pMix);
+exR = xR + 0.03 * noise() * follow;
+ringR = g_comb(exR, sr / (toneFreq * 1.003), toneFb, 0.55)
+       + g_comb(exR, sr / (toneFreq * 1.5 * 1.003), toneFb, 0.55) * 0.7
+       + g_comb(exR, sr / (toneFreq * 2 * 1.003), toneFb, 0.55) * 0.5;
+xR = xR + ringR * toneNorm * toneLevel * follow + synR;
+xR = xR * gGain;
+
+// ---------- reverb (4 combs + 2 allpasses per side) ----------
+k = sr / 44100;
+rin = (xL + xR) * 0.015;
+rL = g_fvcomb(rin, 1116 * k, fvFb, fvDamp) + g_fvcomb(rin, 1188 * k, fvFb, fvDamp)
+   + g_fvcomb(rin, 1277 * k, fvFb, fvDamp) + g_fvcomb(rin, 1356 * k, fvFb, fvDamp);
+rL = g_allp(g_allp(rL, 556 * k), 441 * k);
+rR = g_fvcomb(rin, 1139 * k, fvFb, fvDamp) + g_fvcomb(rin, 1211 * k, fvFb, fvDamp)
+   + g_fvcomb(rin, 1300 * k, fvFb, fvDamp) + g_fvcomb(rin, 1379 * k, fvFb, fvDamp);
+rR = g_allp(g_allp(rR, 579 * k), 464 * k);
+
+oL = xL * dryG + rL * revWet * 6;
+oR = xR * dryG + rR * revWet * 6;
+
+// ---------- width, makeup, safety clip ----------
+mid = 0.5 * (oL + oR);
+sd = 0.5 * (oL - oR) * side;
+oL = (mid + sd) * outG;
+oR = (mid - sd) * outG;
+oL = oL + clipMix * (tanh(oL) - oL);
+oR = oR + clipMix * (tanh(oR) - oR);
+
+out1 = oL;
+out2 = oR;

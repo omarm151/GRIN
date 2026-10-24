@@ -33,6 +33,10 @@ Snap the knob back to 0 for the drop.
 - Double-click the knob to reset it to 0.
 - All three controls can be automated.
 
+## Max for Live version
+
+For Ableton, there's a native M4L device in [`m4l/`](m4l/): just drag `m4l/GRIN.amxd` onto a track. See [`m4l/README.md`](m4l/README.md).
+
 ## Download a ready-made build (no compiling)
 
 Every push to GitHub builds the Mac plugin automatically (see the **Actions** tab).
