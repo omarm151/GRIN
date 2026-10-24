@@ -69,9 +69,7 @@
       ""
      ],
      "border": 0,
-     "parameter_enable": 0,
-     "ignoreclick": 1,
-     "background": 1
+     "parameter_enable": 0
     }
    },
    {
@@ -117,97 +115,18 @@
    {
     "box": {
      "id": "dial",
-     "maxclass": "live.numbox",
+     "maxclass": "live.dial",
      "patching_rect": [
       20,
       20,
       44,
-      15
-     ],
-     "presentation": 1,
-     "presentation_rect": [
-      14,
-      18,
-      136,
-      136
+      48
      ],
      "numinlets": 1,
      "numoutlets": 2,
      "outlettype": [
       "",
       "float"
-     ],
-     "activebgcolor": [
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ],
-     "activebgoncolor": [
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ],
-     "bgcolor": [
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ],
-     "bordercolor": [
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ],
-     "focusbordercolor": [
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ],
-     "textcolor": [
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ],
-     "activeslidercolor": [
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ],
-     "slidercolor": [
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ],
-     "tricolor": [
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ],
-     "tricolor2": [
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ],
-     "activetricolor": [
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ],
-     "activetricolor2": [
-      0.0,
-      0.0,
-      0.0,
-      0.0
      ],
      "saved_attribute_attributes": {
       "valueof": {
@@ -236,13 +155,6 @@
       230,
       22
      ],
-     "presentation": 1,
-     "presentation_rect": [
-      168,
-      40,
-      242,
-      19
-     ],
      "numinlets": 1,
      "numoutlets": 3,
      "outlettype": [
@@ -251,73 +163,6 @@
       "float"
      ],
      "num_lines_patching": 1,
-     "num_lines_presentation": 1,
-     "activebgcolor": [
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ],
-     "activebgoncolor": [
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ],
-     "bgcolor": [
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ],
-     "bgoncolor": [
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ],
-     "bordercolor": [
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ],
-     "focusbordercolor": [
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ],
-     "textcolor": [
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ],
-     "textoncolor": [
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ],
-     "activetextcolor": [
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ],
-     "activetextoncolor": [
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ],
-     "blinkcolor": [
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ],
      "saved_attribute_attributes": {
       "valueof": {
        "parameter_longname": "Strength",
@@ -353,13 +198,6 @@
       60,
       20
      ],
-     "presentation": 1,
-     "presentation_rect": [
-      168,
-      134,
-      62,
-      24
-     ],
      "numinlets": 1,
      "numoutlets": 2,
      "outlettype": [
@@ -368,72 +206,6 @@
      ],
      "text": "GATE",
      "texton": "GATE",
-     "activebgcolor": [
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ],
-     "activebgoncolor": [
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ],
-     "bgcolor": [
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ],
-     "bgoncolor": [
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ],
-     "bordercolor": [
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ],
-     "focusbordercolor": [
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ],
-     "textcolor": [
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ],
-     "textoncolor": [
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ],
-     "activetextcolor": [
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ],
-     "activetextoncolor": [
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ],
-     "blinkcolor": [
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ],
      "saved_attribute_attributes": {
       "valueof": {
        "parameter_longname": "Gate",
@@ -464,13 +236,6 @@
       60,
       20
      ],
-     "presentation": 1,
-     "presentation_rect": [
-      238,
-      134,
-      62,
-      24
-     ],
      "numinlets": 1,
      "numoutlets": 2,
      "outlettype": [
@@ -479,72 +244,6 @@
      ],
      "text": "NOISE",
      "texton": "NOISE",
-     "activebgcolor": [
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ],
-     "activebgoncolor": [
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ],
-     "bgcolor": [
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ],
-     "bgoncolor": [
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ],
-     "bordercolor": [
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ],
-     "focusbordercolor": [
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ],
-     "textcolor": [
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ],
-     "textoncolor": [
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ],
-     "activetextcolor": [
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ],
-     "activetextoncolor": [
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ],
-     "blinkcolor": [
-      0.0,
-      0.0,
-      0.0,
-      0.0
-     ],
      "saved_attribute_attributes": {
       "valueof": {
        "parameter_longname": "Noise",

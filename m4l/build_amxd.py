@@ -348,39 +348,27 @@ CYAN = [0.243, 0.902, 1.0, 1.0]
 DIM  = [0.54, 0.52, 0.6, 1.0]
 BG   = [0.051, 0.047, 0.071, 1.0]
 
-CLEAR = [0.0, 0.0, 0.0, 0.0]
-CLEAR_TAB  = {k: CLEAR for k in ("activebgcolor", "activebgoncolor", "bgcolor", "bgoncolor", "bordercolor",
-                                 "focusbordercolor", "textcolor", "textoncolor", "activetextcolor",
-                                 "activetextoncolor", "blinkcolor")}
-CLEAR_TEXT = CLEAR_TAB
-CLEAR_NUM  = {k: CLEAR for k in ("activebgcolor", "activebgoncolor", "bgcolor", "bordercolor", "focusbordercolor",
-                                 "textcolor", "activeslidercolor", "slidercolor", "tricolor", "tricolor2",
-                                 "activetricolor", "activetricolor2")}
-
 boxes = [
-    # the whole visible interface (drawing only)
+    # the whole visible interface
     box("ui", "jsui", [600, 20, 420, 169], filename="grin_ui.js", presentation=1,
         presentation_rect=[0, 0, 420, 169], numinlets=1, numoutlets=1, outlettype=[""], border=0,
-        parameter_enable=0, ignoreclick=1, background=1),   # background layer: always behind the controls
+        parameter_enable=0),
     newobj("route", "route smile strength gateon noiseon", [600, 200, 220, 22], 1, 5, ["", "", "", "", ""]),
     newobj("toDial", "* 100.", [600, 230, 50, 22], 2, 1, ["float"]),
 
-    # The real Live parameters, laid invisibly over the drawn controls so clicks,
-    # drags and the right-click menu (Show Automation, Map to MIDI ...) go to Live.
-    # live.numbox (not live.dial): it fills its whole box, so the entire drawn knob is the
-    # drag area; vertical drag + Shift for fine, exactly like a dial
-    box("dial", "live.numbox", [20, 20, 44, 15], presentation=1, presentation_rect=[14, 18, 136, 136],
+    # hidden Live parameters (automation, MIDI mapping, presets)
+    box("dial", "live.dial", [20, 20, 44, 48],
         numinlets=1, numoutlets=2, outlettype=["", "float"],
-        **CLEAR_NUM, **param("Smile", "Smile", 0, 100.0, 0.0, unitstyle=5)),
-    box("tab", "live.tab", [140, 20, 230, 22], presentation=1, presentation_rect=[168, 40, 242, 19],
-        numinlets=1, numoutlets=3, outlettype=["", "", "float"], num_lines_patching=1, num_lines_presentation=1,
-        **CLEAR_TAB, **param("Strength", "Strength", 2, 6.0, 2.0, enum=["S1", "S2", "M1", "M2", "H1", "H2", "EXT"])),
-    box("gatebtn", "live.text", [140, 60, 60, 20], presentation=1, presentation_rect=[168, 134, 62, 24],
+        **param("Smile", "Smile", 0, 100.0, 0.0, unitstyle=5)),
+    box("tab", "live.tab", [140, 20, 230, 22],
+        numinlets=1, numoutlets=3, outlettype=["", "", "float"], num_lines_patching=1,
+        **param("Strength", "Strength", 2, 6.0, 2.0, enum=["S1", "S2", "M1", "M2", "H1", "H2", "EXT"])),
+    box("gatebtn", "live.text", [140, 60, 60, 20],
         numinlets=1, numoutlets=2, outlettype=["", ""], text="GATE", texton="GATE",
-        **CLEAR_TEXT, **param("Gate", "Gate", 2, 1.0, 1.0, enum=["off", "on"])),
-    box("noisebtn", "live.text", [220, 60, 60, 20], presentation=1, presentation_rect=[238, 134, 62, 24],
+        **param("Gate", "Gate", 2, 1.0, 1.0, enum=["off", "on"])),
+    box("noisebtn", "live.text", [220, 60, 60, 20],
         numinlets=1, numoutlets=2, outlettype=["", ""], text="NOISE", texton="NOISE",
-        **CLEAR_TEXT, **param("Noise", "Noise", 2, 1.0, 1.0, enum=["off", "on"])),
+        **param("Noise", "Noise", 2, 1.0, 1.0, enum=["off", "on"])),
 
     # parameter -> gen~ and UI
     newobj("scale", "* 0.01", [20, 140, 50, 22], 2, 1, ["float"]),
