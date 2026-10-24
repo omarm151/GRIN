@@ -5,11 +5,27 @@ At 0 % the plugin is fully transparent (bit-for-bit). As you turn the knob up, t
 
 | Knob  | What comes in |
 |-------|---------------|
-| 0–25 %  | Saturation, the highpass starts climbing (20 Hz → ~1.6 kHz with rising resonance) |
+| 0 → 100 % | **Highpass sweep** (24 dB/oct, resonant). Starts slowly, then races up to 3–9 kHz depending on the mode, so every mode ends up razor-thin |
+| 0–25 %  | Saturation |
 | 15–75 % | Flanger gets faster, deeper and more metallic. A white-noise riser follows your track and its band sweeps up to ~12 kHz |
+| 20 %+ (Hard / Extreme) | **Tonal riser**: tuned resonators driven by *your own audio* ring on root, fifth and octave, and their pitch climbs 3 octaves (C3 → C6). Extreme adds a detuned synth-saw riser on top |
 | 35 %+   | Tempo-synced gate locked to your DAW: 1/4 → 1/8 (60 %) → 1/16 (80 %) → 1/32 (93 %) |
 | 55 %+   | Pitch lift that glides up to +1 octave |
-| All the way | The reverb room grows, the stereo image widens, and makeup gain plus a soft clipper keep the level up |
+| All the way | The reverb room grows, the stereo image widens, and a soft clipper keeps peaks safe |
+
+### Strength modes
+
+| Mode | Highpass top | Gate | Pitch lift | Tonal riser |
+|------|-------------|------|-----------|-------------|
+| Soft 1 | 3 kHz | off | off | — |
+| Soft 2 | 3.6 kHz | light | off | — |
+| Medium 1 | 4.5 kHz | ✓ | half | — |
+| Medium 2 | 5.5 kHz | ✓ | ✓ | — |
+| Hard 1 | 6.5 kHz | ✓ | ✓ | from your audio |
+| Hard 2 | 7.5 kHz | ✓ | ✓ | from your audio, louder |
+| Extreme | 9 kHz | ✓ | ✓ | from your audio + synth saw riser |
+
+Drive, flanger, noise and space also get stronger as you go up the modes. Switching modes mid-build glides smoothly, with no clicks.
 
 Snap the knob back to 0 for the drop.
 

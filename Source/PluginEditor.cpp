@@ -8,7 +8,7 @@ namespace
     const juce::Colour textDim  { 0xff8a8598 };
     const juce::Colour textHi   { 0xfff2eff8 };
 
-    const char* stageNames[GrinEngine::NumStages] = { "DRIVE", "FILTER", "FLANGE", "NOISE", "GATE", "PITCH", "SPACE" };
+    const char* stageNames[GrinEngine::NumStages] = { "DRIVE", "FILTER", "FLANGE", "NOISE", "TONE", "GATE", "PITCH", "SPACE" };
 }
 
 //==============================================================================
@@ -129,6 +129,28 @@ void GrinLookAndFeel::drawToggleButton (juce::Graphics& g, juce::ToggleButton& b
     g.drawText (b.getButtonText(), r, Justification::centred);
 }
 
+void GrinLookAndFeel::drawButtonBackground (juce::Graphics& g, juce::Button& b, const juce::Colour&,
+                                            bool highlighted, bool down)
+{
+    using namespace juce;
+    auto r = b.getLocalBounds().toFloat().reduced (1.5f);
+    const bool on = b.getToggleState();
+    const auto accent = colourFor ((float) (int) b.getProperties()["modeIndex"] / (float) (GrinEngine::NumModes - 1));
+
+    g.setColour (on ? accent.withAlpha (0.22f) : (down ? track : panel));
+    g.fillRoundedRectangle (r, 7.0f);
+    g.setColour (on ? accent : (highlighted ? textDim : track.brighter (0.3f)));
+    g.drawRoundedRectangle (r, 7.0f, on ? 1.6f : 1.0f);
+}
+
+void GrinLookAndFeel::drawButtonText (juce::Graphics& g, juce::TextButton& b, bool, bool)
+{
+    using namespace juce;
+    g.setColour (b.getToggleState() ? textHi : textDim);
+    g.setFont (FontOptions (10.5f, Font::bold));
+    g.drawText (b.getButtonText(), b.getLocalBounds(), Justification::centred);
+}
+
 //==============================================================================
 GrinAudioProcessorEditor::GrinAudioProcessorEditor (GrinAudioProcessor& p)
     : AudioProcessorEditor (&p), processor (p)
@@ -154,12 +176,37 @@ GrinAudioProcessorEditor::GrinAudioProcessorEditor (GrinAudioProcessor& p)
 
     smileKnob.onValueChange = [this] { repaint(); };
 
+    // strength modes: a row of buttons driving a hidden combo box bound to the "mode" parameter
+    for (int m = 0; m < GrinEngine::NumModes; ++m)
+        modeBox.addItem (GrinEngine::modeName (m), m + 1);
+    modeAttachment = std::make_unique<ComboBoxAttachment> (p.apvts, "mode", modeBox);
+
+    for (int m = 0; m < GrinEngine::NumModes; ++m)
+    {
+        auto& btn = modeButtons[(size_t) m];
+        btn.setButtonText (GrinEngine::modeName (m));
+        btn.getProperties().set ("modeIndex", m);
+        btn.setClickingTogglesState (false);
+        btn.onClick = [this, m] { modeBox.setSelectedItemIndex (m, juce::sendNotificationSync); };
+        addAndMakeVisible (btn);
+    }
+    modeBox.onChange = [this] { syncModeButtons(); };
+    syncModeButtons();
+
     for (int i = 0; i < GrinEngine::NumStages; ++i)
         stageDisplay[(size_t) i] = juce::jlimit (0.0f, 1.0f, p.engine.getStageLevel (i));
     divisionBeats = p.engine.getGateDivisionBeats();
 
-    setSize (440, 580);
+    setSize (480, 640);
     startTimerHz (30);
+}
+
+void GrinAudioProcessorEditor::syncModeButtons()
+{
+    const int sel = modeBox.getSelectedItemIndex();
+    for (int m = 0; m < GrinEngine::NumModes; ++m)
+        modeButtons[(size_t) m].setToggleState (m == sel, juce::dontSendNotification);
+    repaint();
 }
 
 GrinAudioProcessorEditor::~GrinAudioProcessorEditor()
@@ -280,7 +327,17 @@ void GrinAudioProcessorEditor::resized()
     r.removeFromTop (6);
 
     auto bottom = r.removeFromBottom (40);
-    r.removeFromBottom (14);
+    r.removeFromBottom (12);
+
+    auto modeRow = r.removeFromBottom (34);
+    const int gap = 5;
+    const int bw = (modeRow.getWidth() - gap * (GrinEngine::NumModes - 1)) / GrinEngine::NumModes;
+    for (int m = 0; m < GrinEngine::NumModes; ++m)
+    {
+        modeButtons[(size_t) m].setBounds (modeRow.removeFromLeft (bw));
+        modeRow.removeFromLeft (gap);
+    }
+    r.removeFromBottom (12);
     stageArea = r.removeFromBottom (92);
     r.removeFromBottom (8);
 

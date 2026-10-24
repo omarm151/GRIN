@@ -42,6 +42,7 @@ private:
     std::atomic<float>* smileParam = nullptr;
     std::atomic<float>* gateParam  = nullptr;
     std::atomic<float>* noiseParam = nullptr;
+    std::atomic<float>* modeParam  = nullptr;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (GrinAudioProcessor)
 };

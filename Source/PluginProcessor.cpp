@@ -10,6 +10,7 @@ GrinAudioProcessor::GrinAudioProcessor()
     smileParam = apvts.getRawParameterValue ("smile");
     gateParam  = apvts.getRawParameterValue ("gate");
     noiseParam = apvts.getRawParameterValue ("noise");
+    modeParam  = apvts.getRawParameterValue ("mode");
 }
 
 juce::AudioProcessorValueTreeState::ParameterLayout GrinAudioProcessor::createLayout()
@@ -23,6 +24,9 @@ juce::AudioProcessorValueTreeState::ParameterLayout GrinAudioProcessor::createLa
         AudioParameterFloatAttributes()
             .withStringFromValueFunction ([] (float v, int) { return String (roundToInt (v * 100.0f)) + " %"; })
             .withValueFromStringFunction ([] (const String& s) { return s.getFloatValue() / 100.0f; })));
+
+    const StringArray modes { "Soft 1", "Soft 2", "Medium 1", "Medium 2", "Hard 1", "Hard 2", "Extreme" };
+    layout.add (std::make_unique<AudioParameterChoice> (ParameterID { "mode", 1 }, "Strength", modes, GrinEngine::Medium1));
 
     layout.add (std::make_unique<AudioParameterBool> (ParameterID { "gate", 1 },  "Gate",  true));
     layout.add (std::make_unique<AudioParameterBool> (ParameterID { "noise", 1 }, "Noise", true));
@@ -41,6 +45,7 @@ bool GrinAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) con
 void GrinAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     engine.setSmile (smileParam->load());
+    engine.setMode ((int) modeParam->load());
     engine.prepare (sampleRate, samplesPerBlock);
 }
 
@@ -67,6 +72,7 @@ void GrinAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::M
     engine.setSmile (smileParam->load());
     engine.setGateEnabled (gateParam->load() > 0.5f);
     engine.setNoiseEnabled (noiseParam->load() > 0.5f);
+    engine.setMode ((int) modeParam->load());
     engine.process (buffer, bpm, ppq, playing);
 }
 

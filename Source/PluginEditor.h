@@ -14,6 +14,8 @@ public:
                            float startAngle, float endAngle, juce::Slider&) override;
 
     void drawToggleButton (juce::Graphics&, juce::ToggleButton&, bool highlighted, bool down) override;
+    void drawButtonBackground (juce::Graphics&, juce::Button&, const juce::Colour&, bool highlighted, bool down) override;
+    void drawButtonText (juce::Graphics&, juce::TextButton&, bool highlighted, bool down) override;
 };
 
 class GrinAudioProcessorEditor : public juce::AudioProcessorEditor, private juce::Timer
@@ -27,6 +29,7 @@ public:
 
 private:
     void timerCallback() override;
+    void syncModeButtons();
 
     GrinAudioProcessor& processor;
     GrinLookAndFeel lnf;
@@ -36,8 +39,13 @@ private:
 
     using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
     using ButtonAttachment = juce::AudioProcessorValueTreeState::ButtonAttachment;
+    using ComboBoxAttachment = juce::AudioProcessorValueTreeState::ComboBoxAttachment;
     std::unique_ptr<SliderAttachment> smileAttachment;
     std::unique_ptr<ButtonAttachment> gateAttachment, noiseAttachment;
+
+    juce::ComboBox modeBox;                                        // hidden, holds the parameter
+    std::array<juce::TextButton, GrinEngine::NumModes> modeButtons;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> modeAttachment;
 
     std::array<float, GrinEngine::NumStages> stageDisplay {};
     float gateDisplay = 1.0f, divisionBeats = 0.0f;

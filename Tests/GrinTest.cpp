@@ -93,12 +93,11 @@ int main (int argc, char** argv)
     const int n = dry.getNumSamples();
     const double samplesPerBar = 4.0 * 60.0 / bpm * sr;
 
-    auto render = [&] (std::function<float (double bar)> automation, bool gate, bool noise)
+    auto render = [&] (std::function<float (double bar)> automation, int mode)
     {
         AudioBuffer<float> b (dry);
         GrinEngine e;
-        e.setGateEnabled (gate);
-        e.setNoiseEnabled (noise);
+        e.setMode (mode);
         e.setSmile (automation (0.0));
         e.prepare (sr, 512);
         for (int pos = 0; pos < n; pos += 512)
@@ -111,30 +110,6 @@ int main (int argc, char** argv)
         return b;
     };
 
-    // 2 bars clean, 12-bar build to 100 %, then the drop (knob snaps back to 0) for 4 bars
-    auto build = render ([] (double bar)
-    {
-        if (bar < 2.0)  return 0.0f;
-        if (bar < 14.0) return (float) std::pow ((bar - 2.0) / 12.0, 1.3);
-        return 0.0f;
-    }, true, true);
-
-    auto zero = render ([] (double) { return 0.0f; }, true, true);
-    auto full = render ([] (double) { return 1.0f; }, true, true);
-
-    int nans = 0;
-    float peakBuild = 0, peakFull = 0, maxDiff = 0;
-    for (int c = 0; c < 2; ++c)
-        for (int i = 0; i < n; ++i)
-        {
-            const float a = build.getSample (c, i), f = full.getSample (c, i);
-            if (! std::isfinite (a) || ! std::isfinite (f)) ++nans;
-            peakBuild = jmax (peakBuild, std::abs (a));
-            peakFull  = jmax (peakFull, std::abs (f));
-            if (i > (int) (0.1 * sr))
-                maxDiff = jmax (maxDiff, std::abs (zero.getSample (c, i) - dry.getSample (c, i)));
-        }
-
     auto rmsDb = [&] (const AudioBuffer<float>& b, double barFrom, double barTo)
     {
         const int s0 = (int) (barFrom * samplesPerBar), s1 = jmin (n, (int) (barTo * samplesPerBar));
@@ -144,17 +119,59 @@ int main (int argc, char** argv)
         return Decibels::gainToDecibels ((float) std::sqrt (acc / (2.0 * (s1 - s0))));
     };
 
-    std::printf ("NaN/Inf samples:          %d\n", nans);
-    std::printf ("peak (build):             %.3f\n", peakBuild);
-    std::printf ("peak (100%% held):         %.3f\n", peakFull);
-    std::printf ("max |out-in| at Smile=0:  %.2e  (%.1f dB)\n", maxDiff, Decibels::gainToDecibels (maxDiff, -200.0f));
-    std::printf ("RMS dry     bars 0-2: %.1f dB\n", rmsDb (dry, 0, 2));
-    for (double b0 = 2; b0 < 14; b0 += 3)
-        std::printf ("RMS build   bars %2.0f-%2.0f: %.1f dB (dry %.1f)\n", b0, b0 + 3, rmsDb (build, b0, b0 + 3), rmsDb (dry, b0, b0 + 3));
-    std::printf ("RMS drop    bars 14-18: %.1f dB (dry %.1f)\n", rmsDb (build, 14, 18), rmsDb (dry, 14, 18));
+    // share of energy below 1 kHz (one-pole split) -> how "thin" it is
+    auto lowShare = [&] (const AudioBuffer<float>& b, double barFrom, double barTo)
+    {
+        const int s0 = (int) (barFrom * samplesPerBar), s1 = jmin (n, (int) (barTo * samplesPerBar));
+        const float a = 1.0f - std::exp (-2.0f * 3.14159f * 1000.0f / (float) sr);
+        double lo = 0, all = 0; float lp = 0;
+        for (int i = s0; i < s1; ++i)
+        {
+            const float x = 0.5f * (b.getSample (0, i) + b.getSample (1, i));
+            lp += a * (x - lp);
+            lo += lp * lp; all += x * x;
+        }
+        return 100.0 * lo / jmax (1e-12, all);
+    };
 
-    writeWav (dry,   sr, outDir.getChildFile ("grin_dry.wav"));
-    writeWav (build, sr, outDir.getChildFile ("grin_buildup.wav"));
+    // 2 bars clean, 12-bar build to 100 %, then the drop (knob snaps back to 0) for 4 bars
+    auto buildCurve = [] (double bar)
+    {
+        if (bar < 2.0)  return 0.0f;
+        if (bar < 14.0) return (float) std::pow ((bar - 2.0) / 12.0, 1.3);
+        return 0.0f;
+    };
 
-    return (nans == 0 && peakBuild < 1.5f && maxDiff < 1.0e-3f) ? 0 : 1;
+    bool ok = true;
+    std::printf ("dry RMS %.1f dB, low<1k %.0f%%\n\n", rmsDb (dry, 0, 2), lowShare (dry, 0, 2));
+    std::printf ("%-8s %6s %6s %8s %8s %8s %8s %7s\n", "mode", "peak", "NaN", "bar2-5", "bar8-11", "bar12-14", "low<1k", "S=0 diff");
+
+    for (int mode = 0; mode < GrinEngine::NumModes; ++mode)
+    {
+        auto build = render (buildCurve, mode);
+        auto zero  = render ([] (double) { return 0.0f; }, mode);
+        auto full  = render ([] (double) { return 1.0f; }, mode);
+
+        int nans = 0; float peak = 0, maxDiff = 0;
+        for (int c = 0; c < 2; ++c)
+            for (int i = 0; i < n; ++i)
+            {
+                const float a = build.getSample (c, i), f = full.getSample (c, i);
+                if (! std::isfinite (a) || ! std::isfinite (f)) ++nans;
+                peak = jmax (peak, std::abs (a), std::abs (f));
+                if (i > (int) (0.1 * sr))
+                    maxDiff = jmax (maxDiff, std::abs (zero.getSample (c, i) - dry.getSample (c, i)));
+            }
+
+        std::printf ("%-8s %6.3f %6d %7.1f %8.1f %8.1f %7.0f%% %8.1e\n", GrinEngine::modeName (mode), peak, nans,
+                     rmsDb (build, 2, 5), rmsDb (build, 8, 11), rmsDb (build, 12, 14), lowShare (full, 4, 8), maxDiff);
+
+        ok = ok && nans == 0 && peak < 1.5f && maxDiff < 1.0e-3f;
+
+        if (mode == GrinEngine::Soft1 || mode == GrinEngine::Medium2 || mode == GrinEngine::Hard2 || mode == GrinEngine::Extreme)
+            writeWav (build, sr, outDir.getChildFile (String ("grin_") + String (GrinEngine::modeName (mode)).replace (" ", "").toLowerCase() + ".wav"));
+    }
+
+    writeWav (dry, sr, outDir.getChildFile ("grin_dry.wav"));
+    return ok ? 0 : 1;
 }
