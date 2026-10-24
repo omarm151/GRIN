@@ -70,7 +70,8 @@
      ],
      "border": 0,
      "parameter_enable": 0,
-     "ignoreclick": 1
+     "ignoreclick": 1,
+     "background": 1
     }
    },
    {

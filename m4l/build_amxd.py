@@ -360,7 +360,7 @@ boxes = [
     # the whole visible interface (drawing only)
     box("ui", "jsui", [600, 20, 420, 169], filename="grin_ui.js", presentation=1,
         presentation_rect=[0, 0, 420, 169], numinlets=1, numoutlets=1, outlettype=[""], border=0,
-        parameter_enable=0, ignoreclick=1),
+        parameter_enable=0, ignoreclick=1, background=1),   # background layer: always behind the controls
     newobj("route", "route smile strength gateon noiseon", [600, 200, 220, 22], 1, 5, ["", "", "", "", ""]),
     newobj("toDial", "* 100.", [600, 230, 50, 22], 2, 1, ["float"]),
 
